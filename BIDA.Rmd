@@ -1,0 +1,191 @@
+---
+title: "Peer-graded Assignment: Statistical Inference Course Project | BASIC INFERENTIAL DATA ANALYSIS"
+author: "Roxana Trejos Ramirez"
+date: "11/7/2020"
+output: pdf_document
+---
+
+
+# Part 2: Basic Inferential Data Analysis Instructions
+Now in the second portion of the project, we're going to analyze the ToothGrowth data in the R datasets package.
+
+Load the ToothGrowth data and perform some basic exploratory data analyses
+Provide a basic summary of the data.
+Use confidence intervals and/or hypothesis tests to compare tooth growth by supp and dose. (Only use the techniques from class, even if there's other approaches worth considering)
+State your conclusions and the assumptions needed for your conclusions.
+
+
+##The Effect of Vitamin C on Tooth Growth in Guinea Pigs
+
+R: ToothGrowth data
+
+**Description**
+
+The response is the length of odontoblasts (teeth) in each of 10 guinea pigs at each of three dose levels of Vitamin C (0.5, 1, and 2 mg) with each of two delivery methods (orange juice or ascorbic acid).
+
+**Usage**
+
+ToothGrowth
+
+**Format**
+
+A data frame with 60 observations on 3 variables.
+
+*  **len** which is the numeric tooth length measurement (unspecified units)
+*  **supp** which is the delivery method of Vitamin C - either by orange juice (OJ) or by ascorbic acid (VC)
+*  **dose** which is the dosage of the supplement - 0.5 ml/day, 1.0 ml/day or 2.0 ml/day.
+
+**Source**
+
+C. I. Bliss (1952) The Statistics of Bioassay. Academic Press.
+
+**References**
+
+McNeil, D. R. (1977) Interactive Data Analysis. New York: Wiley.
+
+
+```{r}
+# Libraries
+    library(datasets)
+    library(ggplot2)
+    library(dplyr)
+```
+
+## a.  Load the Tooth Growth Data.
+```{r}
+# load the sample dataset containing ToothGrowth data
+    data(ToothGrowth)
+
+# workable variable
+    dataTG <-ToothGrowth
+```
+
+
+## b.  Exploratory Data Analysis
+```{r}
+
+#   Summary of the type and the values of the features
+    str(dataTG)
+    
+#   Statistical values of the whole ToothGrowth.
+    summary(dataTG)
+    
+#   First few rows    
+    head(dataTG)
+    
+#   Unique dose
+    unique(dataTG$dose)
+    
+#   Unique supplement
+    unique(dataTG$supp)
+    
+```
+
+```{r}
+# Summarize by dose and supp, the mean length of growth.
+    a <- dataTG %>% 
+        group_by(supp,dose) %>%
+        summarize(lenmean=mean(len), lensd=sd(len), count = n())
+    print(a)
+```
+
+```{r}
+g<-ggplot(dataTG, 
+          aes(x=supp, 
+              y=len, 
+              color=supp)) + 
+    geom_boxplot() + 
+    facet_grid(facets = ~ dose) + 
+    labs(title="Tooth growth by supplement type and dose(mg)" , 
+         y = "Tooth Length", 
+         x = "Type of Supplement")
+g
+```
+
+### b.1 Data Analysis Conclusions
+
+1.  There are three doses:  0.5, 1.0 and 2.0.
+2.  The analysis shows only two doses:  VC and OJ:
+
+    - OJ:  orange juice.
+    - VC:  ascorbic acid~Vitamin C.
+4.  In the  VC:
+    
+    -  Tooth length is longer when the doses increase.
+    -  The tooth growth has a linear relationship with dosage. 
+    
+5.  In the OJ:
+
+    -  Higher dossage (2.0mg) has less improvement in tooth growth. 
+    -  This supplement, generally induces more tooth growth than VC except at higher dosage (2.0 mg).
+    
+## c.  Use confidence intervals and/or hypothesis tests to compare tooth growth by supp and dose. (Only use the techniques from class, even if there's other approaches worth considering)
+
+### c.1  Assumptions:
+
+1.  The response is the length of odontoblasts (cells responsible for tooth growth) in 60 guinea pigs. 
+2.  Each animal received one of three dose levels of vitamin C (0.5, 1, and 2 mg/day) by one of two delivery methods, orange juice or ascorbic acid (a form of vitamin C and coded as VC).
+3.  A data frame with 60 observations on 3 variables.
+4.  95% Confidence Interval.
+
+
+### c.2  Inferential statistic to determine if there is a significant difference between the means of OJ and VC doses' groups.
+
+```{r}
+    t.test(len ~ supp, paired=FALSE, var.equal=FALSE, data=dataTG)
+```
+
+**Summary:**
+
+1.  The type of supplementation did not matter for the tooth length increase (length is not significantly different for the two supplement types).
+2.  Comparing a NULL hypothesis (difference of means = 0 ) against an alternative hypothesis: 
+    *we fail to reject the NULL hypothesis*,
+    since the NULL hypothesis value (delta means = 0) is within:
+    
+    -  confidence interval of 95% confidence.
+    -  1.915 t quantile.
+    -  probability is 0.061 which is greater than our mu (0.05). 
+    
+    
+### c.3  Tooth Length by Delivery Method
+
+```{r}
+ggplot(
+    data = dataTG,
+    mapping = aes(x = supp, y = len, color = supp, fill = supp)
+) +
+    geom_boxplot(alpha = 0.2) +
+    geom_jitter(width = 0.05) +
+    scale_x_discrete(labels = c("OJ", "VC")) +
+    labs(
+        title = "Tooth Length by Delivery Method",
+        x = "Delivery Method (Type of the supplement)",
+        y = "Length of the tooth"
+    ) +
+    theme(legend.position = "none")
+```
+
+
+### c4. Tooth Growth Distribution
+
+```{r}
+    hist(dataTG$len, 
+         col = "brown",
+         main = "Tooth Growth Distribution", 
+         xlab = "Length", 
+         ylab = "Frequency", 
+         density=60, 
+         breaks = 60)
+```
+
+### c5. Conclusions:
+
+1.  **We fail to reject the NULL hypothesis**,  since the NULL hypothesis value (delta means = 0) is within:
+    
+    -  confidence interval of 95% confidence.
+    -  1.915 t quantile.
+    -  probability is 0.061 which is greater than our mu (0.05). 
+
+2.  The amount of tooth length increase is directly analogous to the vitamin intake, regardless of type of ingestion.
+
+3.  The difference of the means of teeth length for the two supplements is not significantly different from zero at the 95% confidence level.
